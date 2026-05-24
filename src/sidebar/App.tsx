@@ -36,11 +36,9 @@ function App() {
   const [keywordFolderId, setKeywordFolderId] = useState<number | null>(null);
   const [newKeyword, setNewKeyword] = useState("");
 
-  // Runs once on load — restores saved folders, token, and emails
   useEffect(() => {
     chrome.storage.local.get(["authToken", "cachedEmails", "savedFolders"], (result) => {
       if (result.savedFolders) {
-        // Ensure every folder has a keywords array (backwards compatibility fix)
         const safeFolders = (result.savedFolders as Folder[]).map(f => ({
           ...f,
           keywords: Array.isArray(f.keywords) ? f.keywords : [],
@@ -370,7 +368,7 @@ function App() {
                       }}
                     >Add</button>
                   </div>
-                  <div style={{ display: "flex", flexWrap: "wrap", gap: "4px" }}>
+                  <div style={{ display: "flex", flexWrap: "wrap", gap: "4px", marginBottom: "10px" }}>
                     {folderKeywords.length === 0 && (
                       <p style={{ fontSize: "12px", color: "#aaa", margin: 0 }}>No keywords yet</p>
                     )}
@@ -388,6 +386,21 @@ function App() {
                       </span>
                     ))}
                   </div>
+
+                  {/* Done button — closes keyword panel */}
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setKeywordFolderId(null);
+                      setNewKeyword("");
+                    }}
+                    style={{
+                      width: "100%", padding: "8px",
+                      backgroundColor: "#1a73e8", color: "white",
+                      border: "none", borderRadius: "6px",
+                      cursor: "pointer", fontSize: "13px", fontWeight: 600,
+                    }}
+                  >Done</button>
                 </div>
               )}
             </div>
@@ -472,4 +485,4 @@ function App() {
   );
 }
 
-export default App;   
+export default App;  
