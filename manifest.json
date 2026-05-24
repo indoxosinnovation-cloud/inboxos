@@ -1,0 +1,38 @@
+{
+  "manifest_version": 3,
+  "name": "InboxOS",
+  "version": "0.1.0",
+  "description": "AI-powered Gmail organization",
+  "permissions": [
+    "storage",
+    "identity"
+  ],
+  "host_permissions": [
+    "https://mail.google.com/*"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://mail.google.com/*"],
+      "js": ["content.js"]
+    }
+  ],
+  "action": {
+    "default_title": "InboxOS"
+  },
+  "oauth2": {
+    "client_id": "217783077966-qgoc6dm2iduvkj0ffpcfu838u41noh6a.apps.googleusercontent.com",
+    "scopes": [
+      "https://www.googleapis.com/auth/gmail.readonly"
+    ]
+  },
+  "web_accessible_resources": [
+    {
+      "resources": ["src/sidebar/index.html", "sidebar.js", "assets/*"],
+      "matches": ["https://mail.google.com/*"]
+    }
+  ]
+}
+
