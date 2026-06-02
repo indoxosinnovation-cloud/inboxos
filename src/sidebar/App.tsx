@@ -21,7 +21,17 @@ interface Folder {
   keywords: string[];
 }
 
-// Onboarding screen shown before the user connects Gmail
+// Extracts meaningful words from subject to use as keywords
+function extractKeywords(subject: string): string[] {
+  const stopWords = ["the", "a", "an", "is", "in", "on", "at", "to", "for", "of", "and", "or", "but", "your", "you", "re", "has", "was", "are"];
+  return subject
+    .toLowerCase()
+    .replace(/[^a-z0-9\s]/g, "")
+    .split(" ")
+    .filter(w => w.length > 3 && !stopWords.includes(w))
+    .slice(0, 3);
+}
+
 function OnboardingScreen({ onConnect }: { onConnect: () => void }) {
   return (
     <div style={{
@@ -29,59 +39,34 @@ function OnboardingScreen({ onConnect }: { onConnect: () => void }) {
       fontFamily: "Google Sans, sans-serif", display: "flex",
       flexDirection: "column", borderLeft: "1px solid #e0e0e0",
     }}>
-      {/* Header */}
-      <div style={{
-        padding: "24px 20px", backgroundColor: "#1a73e8", color: "white",
-        textAlign: "center",
-      }}>
+      <div style={{ padding: "24px 20px", backgroundColor: "#1a73e8", color: "white", textAlign: "center" }}>
         <h1 style={{ margin: 0, fontSize: "24px", fontWeight: 700 }}>InboxOS</h1>
-        <p style={{ margin: "6px 0 0", fontSize: "13px", opacity: 0.85 }}>
-          AI-powered Gmail organizer
-        </p>
+        <p style={{ margin: "6px 0 0", fontSize: "13px", opacity: 0.85 }}>AI-powered Gmail organizer</p>
       </div>
-
-      {/* Features list */}
       <div style={{ flex: 1, padding: "24px 20px" }}>
         <p style={{ margin: "0 0 20px", fontSize: "14px", color: "#444", lineHeight: 1.5 }}>
           InboxOS automatically organizes your Gmail into smart folders using AI.
         </p>
-
         {[
           { icon: "📁", title: "Smart Folders", desc: "AI sorts your emails automatically" },
           { icon: "🔑", title: "Keyword Training", desc: "Teach the AI your preferences" },
           { icon: "⚡", title: "Instant Access", desc: "Find any email in seconds" },
         ].map(feature => (
-          <div key={feature.title} style={{
-            display: "flex", alignItems: "flex-start", gap: "12px",
-            marginBottom: "20px",
-          }}>
+          <div key={feature.title} style={{ display: "flex", alignItems: "flex-start", gap: "12px", marginBottom: "20px" }}>
             <span style={{ fontSize: "24px" }}>{feature.icon}</span>
             <div>
-              <p style={{ margin: 0, fontSize: "14px", fontWeight: 600, color: "#333" }}>
-                {feature.title}
-              </p>
-              <p style={{ margin: "2px 0 0", fontSize: "12px", color: "#888" }}>
-                {feature.desc}
-              </p>
+              <p style={{ margin: 0, fontSize: "14px", fontWeight: 600, color: "#333" }}>{feature.title}</p>
+              <p style={{ margin: "2px 0 0", fontSize: "12px", color: "#888" }}>{feature.desc}</p>
             </div>
           </div>
         ))}
       </div>
-
-      {/* Connect button */}
       <div style={{ padding: "20px" }}>
-        <button
-          onClick={onConnect}
-          style={{
-            width: "100%", padding: "14px",
-            backgroundColor: "#1a73e8", color: "white",
-            border: "none", borderRadius: "8px",
-            cursor: "pointer", fontSize: "15px", fontWeight: 600,
-            boxShadow: "0 2px 6px rgba(26,115,232,0.4)",
-          }}
-        >
-          Connect Gmail to Get Started
-        </button>
+        <button onClick={onConnect} style={{
+          width: "100%", padding: "14px", backgroundColor: "#1a73e8", color: "white",
+          border: "none", borderRadius: "8px", cursor: "pointer", fontSize: "15px", fontWeight: 600,
+          boxShadow: "0 2px 6px rgba(26,115,232,0.4)",
+        }}>Connect Gmail to Get Started</button>
         <p style={{ textAlign: "center", fontSize: "11px", color: "#aaa", marginTop: "10px" }}>
           Your emails never leave your device
         </p>
@@ -90,71 +75,41 @@ function OnboardingScreen({ onConnect }: { onConnect: () => void }) {
   );
 }
 
-// Loading animation shown while AI classifies emails
 function LoadingScreen() {
   const [dotsCount, setDotsCount] = useState(1);
-
   useEffect(() => {
-    const interval = setInterval(() => {
-      setDotsCount(d => d === 3 ? 1 : d + 1);
-    }, 500);
+    const interval = setInterval(() => setDotsCount(d => d === 3 ? 1 : d + 1), 500);
     return () => clearInterval(interval);
   }, []);
-
   const dots = ".".repeat(dotsCount);
-
   return (
     <div style={{
       width: "300px", height: "100vh", backgroundColor: "#fff",
       fontFamily: "Google Sans, sans-serif", display: "flex",
       flexDirection: "column", borderLeft: "1px solid #e0e0e0",
     }}>
-      {/* Header */}
-      <div style={{
-        padding: "20px 16px", backgroundColor: "#1a73e8", color: "white",
-        display: "flex", alignItems: "center", gap: "12px",
-      }}>
+      <div style={{ padding: "20px 16px", backgroundColor: "#1a73e8", color: "white" }}>
         <h1 style={{ margin: 0, fontSize: "18px", fontWeight: 600 }}>InboxOS</h1>
       </div>
-
-      {/* Loading content */}
-      <div style={{
-        flex: 1, display: "flex", flexDirection: "column",
-        alignItems: "center", justifyContent: "center", padding: "40px 20px",
-      }}>
-        {/* Spinning circle */}
+      <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "40px 20px" }}>
         <div style={{
           width: "48px", height: "48px", borderRadius: "50%",
-          border: "4px solid #e8f0fe",
-          borderTop: "4px solid #1a73e8",
-          animation: "spin 1s linear infinite",
-          marginBottom: "24px",
+          border: "4px solid #e8f0fe", borderTop: "4px solid #1a73e8",
+          animation: "spin 1s linear infinite", marginBottom: "24px",
         }} />
-
-        <p style={{ margin: 0, fontSize: "16px", fontWeight: 600, color: "#333" }}>
-          AI is reading your emails{dots}
-        </p>
+        <p style={{ margin: 0, fontSize: "16px", fontWeight: 600, color: "#333" }}>AI is reading your emails{dots}</p>
         <p style={{ margin: "8px 0 0", fontSize: "13px", color: "#888", textAlign: "center" }}>
           Gemini is classifying and organizing your inbox
         </p>
-
-        {/* Animated steps */}
         <div style={{ marginTop: "32px", width: "100%" }}>
-          {[
-            "Fetching your emails",
-            "Analyzing content",
-            "Organizing into folders",
-          ].map((step, i) => (
+          {["Fetching your emails", "Analyzing content", "Organizing into folders"].map((step, i) => (
             <div key={step} style={{
               display: "flex", alignItems: "center", gap: "10px",
-              padding: "8px 12px", marginBottom: "8px",
-              backgroundColor: "#f8f9fa", borderRadius: "8px",
+              padding: "8px 12px", marginBottom: "8px", backgroundColor: "#f8f9fa", borderRadius: "8px",
             }}>
               <div style={{
-                width: "8px", height: "8px", borderRadius: "50%",
-                backgroundColor: "#1a73e8",
-                opacity: dotsCount > i ? 1 : 0.3,
-                transition: "opacity 0.3s",
+                width: "8px", height: "8px", borderRadius: "50%", backgroundColor: "#1a73e8",
+                opacity: dotsCount > i ? 1 : 0.3, transition: "opacity 0.3s",
               }} />
               <span style={{ fontSize: "13px", color: "#555" }}>{step}</span>
             </div>
@@ -180,12 +135,22 @@ function App() {
   const [keywordFolderId, setKeywordFolderId] = useState<number | null>(null);
   const [newKeyword, setNewKeyword] = useState("");
 
+  // Drag and drop state
+  const [draggingEmailId, setDraggingEmailId] = useState<string | null>(null);
+  const [dragOverFolderId, setDragOverFolderId] = useState<number | null>(null);
+
+  // "Train AI?" prompt state
+  const [trainPrompt, setTrainPrompt] = useState<{
+    emailId: string;
+    folderName: string;
+    keywords: string[];
+  } | null>(null);
+
   useEffect(() => {
     chrome.storage.local.get(["authToken", "cachedEmails", "savedFolders"], (result) => {
       if (result.savedFolders) {
         const safeFolders = (result.savedFolders as Folder[]).map(f => ({
-          ...f,
-          keywords: Array.isArray(f.keywords) ? f.keywords : [],
+          ...f, keywords: Array.isArray(f.keywords) ? f.keywords : [],
         }));
         setFolders(safeFolders);
       }
@@ -202,10 +167,7 @@ function App() {
 
   const login = () => {
     chrome.runtime.sendMessage({ type: "GET_AUTH_TOKEN" }, (response) => {
-      if (response.error) {
-        setError("Login failed: " + response.error);
-        return;
-      }
+      if (response.error) { setError("Login failed: " + response.error); return; }
       chrome.storage.local.set({ authToken: response.token });
       setToken(response.token);
       fetchEmails(response.token);
@@ -221,11 +183,7 @@ function App() {
         { headers: { Authorization: `Bearer ${authToken}` } }
       );
       const listData = await listRes.json();
-      if (!listData.messages) {
-        setEmails([]);
-        setLoading(false);
-        return;
-      }
+      if (!listData.messages) { setEmails([]); setLoading(false); return; }
       const emailPromises = listData.messages.map(async (msg: { id: string }) => {
         const msgRes = await fetch(
           `https://gmail.googleapis.com/gmail/v1/users/me/messages/${msg.id}?format=metadata&metadataHeaders=Subject&metadataHeaders=From`,
@@ -238,24 +196,8 @@ function App() {
         const snippet = msgData.snippet || "";
         const classification = await new Promise<string>((resolve) => {
           chrome.runtime.sendMessage(
-            {
-              type: "CLASSIFY_EMAIL",
-              subject,
-              snippet,
-              folders: folders.map(f => ({
-                name: f.name,
-                keywords: Array.isArray(f.keywords) ? f.keywords : [],
-              })),
-            },
-            (response) => {
-              const raw = response?.folder?.trim() || "Miscellaneous";
-              // Find exact match first, then try case-insensitive match
-              const exactMatch = folders.find(f => f.name === raw);
-              const looseMatch = folders.find(f => 
-                f.name.toLowerCase() === raw.toLowerCase()
-            );
-              resolve(exactMatch?.name || looseMatch?.name || "Miscellaneous");
-          }
+            { type: "CLASSIFY_EMAIL", subject, snippet, folders: folders.map(f => ({ name: f.name, keywords: Array.isArray(f.keywords) ? f.keywords : [] })) },
+            (response) => resolve(response?.folder || "Miscellaneous")
           );
         });
         return { id: msg.id, subject, from, snippet, folder: classification };
@@ -263,9 +205,7 @@ function App() {
       const results = await Promise.all(emailPromises);
       chrome.storage.local.set({ cachedEmails: results });
       setEmails(results);
-    } catch (err) {
-      setError("Failed to fetch emails.");
-    }
+    } catch (err) { setError("Failed to fetch emails."); }
     setLoading(false);
   };
 
@@ -277,9 +217,7 @@ function App() {
   const addKeyword = (folderId: number) => {
     if (!newKeyword.trim()) return;
     const updatedFolders = folders.map(f =>
-      f.id === folderId
-        ? { ...f, keywords: [...(Array.isArray(f.keywords) ? f.keywords : []), newKeyword.trim().toLowerCase()] }
-        : f
+      f.id === folderId ? { ...f, keywords: [...(Array.isArray(f.keywords) ? f.keywords : []), newKeyword.trim().toLowerCase()] } : f
     );
     saveFolders(updatedFolders);
     setNewKeyword("");
@@ -287,9 +225,7 @@ function App() {
 
   const removeKeyword = (folderId: number, keyword: string) => {
     const updatedFolders = folders.map(f =>
-      f.id === folderId
-        ? { ...f, keywords: (Array.isArray(f.keywords) ? f.keywords : []).filter(k => k !== keyword) }
-        : f
+      f.id === folderId ? { ...f, keywords: (Array.isArray(f.keywords) ? f.keywords : []).filter(k => k !== keyword) } : f
     );
     saveFolders(updatedFolders);
   };
@@ -297,8 +233,7 @@ function App() {
   const createFolder = () => {
     if (!newFolderName.trim()) return;
     const newFolder = { id: Date.now(), name: newFolderName.trim(), keywords: [] as string[] };
-    const updatedFolders = [...folders, newFolder];
-    saveFolders(updatedFolders);
+    saveFolders([...folders, newFolder]);
     setNewFolderName("");
     setShowNewFolder(false);
     setSelected(newFolder.id);
@@ -327,12 +262,8 @@ function App() {
   const saveRename = (folderId: number) => {
     if (!renameValue.trim()) return;
     const oldName = folders.find(f => f.id === folderId)?.name;
-    const updatedFolders = folders.map(f =>
-      f.id === folderId ? { ...f, name: renameValue.trim() } : f
-    );
-    const updatedEmails = emails.map(email =>
-      email.folder === oldName ? { ...email, folder: renameValue.trim() } : email
-    );
+    const updatedFolders = folders.map(f => f.id === folderId ? { ...f, name: renameValue.trim() } : f);
+    const updatedEmails = emails.map(email => email.folder === oldName ? { ...email, folder: renameValue.trim() } : email);
     setEmails(updatedEmails);
     saveFolders(updatedFolders);
     chrome.storage.local.set({ cachedEmails: updatedEmails });
@@ -340,10 +271,48 @@ function App() {
     setRenameValue("");
   };
 
-  // Show onboarding if not logged in
-  if (!token) return <OnboardingScreen onConnect={login} />;
+  // Called when user drops an email onto a folder
+  const handleDrop = (folderId: number) => {
+    if (!draggingEmailId) return;
+    const targetFolder = folders.find(f => f.id === folderId);
+    if (!targetFolder) return;
 
-  // Show loading screen while AI classifies
+    const email = emails.find(e => e.id === draggingEmailId);
+    if (!email || email.folder === targetFolder.name) {
+      setDraggingEmailId(null);
+      setDragOverFolderId(null);
+      return;
+    }
+
+    // Move the email to the new folder
+    const updatedEmails = emails.map(e =>
+      e.id === draggingEmailId ? { ...e, folder: targetFolder.name } : e
+    );
+    setEmails(updatedEmails);
+    chrome.storage.local.set({ cachedEmails: updatedEmails });
+
+    // Extract keywords from the email subject for AI training
+    const keywords = extractKeywords(email.subject);
+
+    // Show the "train AI?" prompt
+    setTrainPrompt({ emailId: draggingEmailId, folderName: targetFolder.name, keywords });
+    setDraggingEmailId(null);
+    setDragOverFolderId(null);
+  };
+
+  // Adds extracted keywords to the folder to train AI
+  const trainAI = (folderName: string, keywords: string[]) => {
+    const updatedFolders = folders.map(f => {
+      if (f.name !== folderName) return f;
+      const existing = Array.isArray(f.keywords) ? f.keywords : [];
+      const newKeywords = keywords.filter(k => !existing.includes(k));
+      return { ...f, keywords: [...existing, ...newKeywords] };
+    });
+    saveFolders(updatedFolders);
+    setTrainPrompt(null);
+  };
+
+  if (!token) return <OnboardingScreen onConnect={login} />;
   if (loading) return <LoadingScreen />;
 
   return (
@@ -358,8 +327,7 @@ function App() {
       {/* Header */}
       <div style={{
         padding: "20px 16px", backgroundColor: "#1a73e8", color: "white",
-        display: "flex", justifyContent: "space-between", alignItems: "center",
-        flexShrink: 0,
+        display: "flex", justifyContent: "space-between", alignItems: "center", flexShrink: 0,
       }}>
         <div>
           <h1 style={{ margin: 0, fontSize: "18px", fontWeight: 600 }}>InboxOS</h1>
@@ -368,50 +336,44 @@ function App() {
         <button
           onClick={() => fetchEmails(token)}
           style={{
-            backgroundColor: "rgba(255,255,255,0.2)", border: "none",
-            borderRadius: "50%", width: "36px", height: "36px",
-            cursor: "pointer", fontSize: "18px", display: "flex",
-            alignItems: "center", justifyContent: "center", color: "white",
+            backgroundColor: "rgba(255,255,255,0.2)", border: "none", borderRadius: "50%",
+            width: "36px", height: "36px", cursor: "pointer", fontSize: "18px",
+            display: "flex", alignItems: "center", justifyContent: "center", color: "white",
           }}
           title="Refresh emails"
         >↻</button>
       </div>
 
-      {/* Folder list */}
+      {/* Folder list — folders are drop targets */}
       <div style={{ padding: "12px 8px", overflowY: "visible", flexShrink: 0 }}>
         <p style={{ fontSize: "11px", color: "#888", padding: "0 8px", marginBottom: "8px" }}>FOLDERS</p>
         {folders.map(folder => {
           const count = emails.filter(e => e.folder === folder.name).length;
           const isSelected = selected === folder.id;
           const isRenaming = renamingId === folder.id;
+          const isDragOver = dragOverFolderId === folder.id;
           const folderKeywords = Array.isArray(folder.keywords) ? folder.keywords : [];
 
           return (
-            <div key={folder.id} style={{ marginBottom: "4px" }}>
+            <div
+              key={folder.id}
+              style={{ marginBottom: "4px" }}
+              // Make folder a drop target
+              onDragOver={(e) => { e.preventDefault(); setDragOverFolderId(folder.id); }}
+              onDragLeave={() => setDragOverFolderId(null)}
+              onDrop={() => handleDrop(folder.id)}
+            >
               {isRenaming ? (
                 <div style={{ display: "flex", gap: "4px", padding: "4px 8px" }}>
                   <input
-                    type="text"
-                    value={renameValue}
+                    type="text" value={renameValue}
                     onChange={(e) => setRenameValue(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter") saveRename(folder.id);
-                      if (e.key === "Escape") setRenamingId(null);
-                    }}
-                    style={{
-                      flex: 1, padding: "6px 8px", borderRadius: "6px",
-                      border: "1px solid #1a73e8", fontSize: "13px", outline: "none",
-                    }}
+                    onKeyDown={(e) => { if (e.key === "Enter") saveRename(folder.id); if (e.key === "Escape") setRenamingId(null); }}
+                    style={{ flex: 1, padding: "6px 8px", borderRadius: "6px", border: "1px solid #1a73e8", fontSize: "13px", outline: "none" }}
                     autoFocus
                   />
-                  <button onClick={() => saveRename(folder.id)} style={{
-                    padding: "6px 10px", backgroundColor: "#1a73e8", color: "white",
-                    border: "none", borderRadius: "6px", cursor: "pointer", fontSize: "12px",
-                  }}>Save</button>
-                  <button onClick={() => setRenamingId(null)} style={{
-                    padding: "6px 10px", backgroundColor: "#f1f3f4", color: "#333",
-                    border: "none", borderRadius: "6px", cursor: "pointer", fontSize: "12px",
-                  }}>✕</button>
+                  <button onClick={() => saveRename(folder.id)} style={{ padding: "6px 10px", backgroundColor: "#1a73e8", color: "white", border: "none", borderRadius: "6px", cursor: "pointer", fontSize: "12px" }}>Save</button>
+                  <button onClick={() => setRenamingId(null)} style={{ padding: "6px 10px", backgroundColor: "#f1f3f4", color: "#333", border: "none", borderRadius: "6px", cursor: "pointer", fontSize: "12px" }}>✕</button>
                 </div>
               ) : (
                 <div style={{ position: "relative" }}>
@@ -420,8 +382,11 @@ function App() {
                     style={{
                       display: "flex", justifyContent: "space-between", alignItems: "center",
                       padding: "10px 12px", borderRadius: "8px", cursor: "pointer",
-                      backgroundColor: isSelected ? "#e8f0fe" : "transparent",
-                      color: isSelected ? "#1a73e8" : "#333",
+                      // Highlight folder when dragging over it
+                      backgroundColor: isDragOver ? "#1a73e8" : isSelected ? "#e8f0fe" : "transparent",
+                      color: isDragOver ? "white" : isSelected ? "#1a73e8" : "#333",
+                      border: isDragOver ? "2px dashed rgba(255,255,255,0.6)" : "2px solid transparent",
+                      transition: "all 0.15s",
                     }}
                   >
                     <span style={{ fontSize: "14px", flex: 1 }}>{folder.name}</span>
@@ -429,50 +394,37 @@ function App() {
                       {count > 0 && (
                         <span style={{
                           fontSize: "12px",
-                          backgroundColor: isSelected ? "#1a73e8" : "#e0e0e0",
-                          color: isSelected ? "white" : "#666",
+                          backgroundColor: isDragOver ? "rgba(255,255,255,0.3)" : isSelected ? "#1a73e8" : "#e0e0e0",
+                          color: isDragOver || isSelected ? "white" : "#666",
                           borderRadius: "10px", padding: "2px 8px",
                         }}>{count}</span>
                       )}
                       <span
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setMenuOpenId(menuOpenId === folder.id ? null : folder.id);
-                        }}
-                        style={{ fontSize: "16px", color: "#888", padding: "0 4px", cursor: "pointer" }}
+                        onClick={(e) => { e.stopPropagation(); setMenuOpenId(menuOpenId === folder.id ? null : folder.id); }}
+                        style={{ fontSize: "16px", color: isDragOver ? "white" : "#888", padding: "0 4px", cursor: "pointer" }}
                       >⋯</span>
                     </div>
                   </div>
 
                   {menuOpenId === folder.id && (
-                    <div
-                      onClick={(e) => e.stopPropagation()}
-                      style={{
-                        position: "absolute", right: "8px", top: "36px",
-                        backgroundColor: "white", border: "1px solid #e0e0e0",
-                        borderRadius: "8px", boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
-                        zIndex: 100, overflow: "hidden", minWidth: "140px",
-                      }}
-                    >
-                      <div
-                        onClick={(e) => { e.stopPropagation(); startRename(folder); }}
+                    <div onClick={(e) => e.stopPropagation()} style={{
+                      position: "absolute", right: "8px", top: "36px",
+                      backgroundColor: "white", border: "1px solid #e0e0e0",
+                      borderRadius: "8px", boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
+                      zIndex: 100, overflow: "hidden", minWidth: "140px",
+                    }}>
+                      <div onClick={(e) => { e.stopPropagation(); startRename(folder); }}
                         style={{ padding: "10px 16px", cursor: "pointer", fontSize: "13px", color: "#333" }}
                         onMouseEnter={e => (e.currentTarget.style.backgroundColor = "#f1f3f4")}
                         onMouseLeave={e => (e.currentTarget.style.backgroundColor = "white")}
                       >Rename</div>
-                      <div
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setKeywordFolderId(keywordFolderId === folder.id ? null : folder.id);
-                          setMenuOpenId(null);
-                        }}
+                      <div onClick={(e) => { e.stopPropagation(); setKeywordFolderId(keywordFolderId === folder.id ? null : folder.id); setMenuOpenId(null); }}
                         style={{ padding: "10px 16px", cursor: "pointer", fontSize: "13px", color: "#333" }}
                         onMouseEnter={e => (e.currentTarget.style.backgroundColor = "#f1f3f4")}
                         onMouseLeave={e => (e.currentTarget.style.backgroundColor = "white")}
                       >Edit Keywords</div>
                       {folder.id !== 4 && (
-                        <div
-                          onClick={(e) => { e.stopPropagation(); deleteFolder(folder.id); }}
+                        <div onClick={(e) => { e.stopPropagation(); deleteFolder(folder.id); }}
                           style={{ padding: "10px 16px", cursor: "pointer", fontSize: "13px", color: "#d93025" }}
                           onMouseEnter={e => (e.currentTarget.style.backgroundColor = "#fce8e6")}
                           onMouseLeave={e => (e.currentTarget.style.backgroundColor = "white")}
@@ -484,44 +436,26 @@ function App() {
               )}
 
               {keywordFolderId === folder.id && (
-                <div
-                  onClick={(e) => e.stopPropagation()}
-                  style={{
-                    margin: "0 8px 8px", padding: "10px",
-                    backgroundColor: "white", border: "1px solid #e0e0e0",
-                    borderRadius: "8px",
-                  }}
-                >
+                <div onClick={(e) => e.stopPropagation()} style={{
+                  margin: "0 8px 8px", padding: "10px",
+                  backgroundColor: "white", border: "1px solid #e0e0e0", borderRadius: "8px",
+                }}>
                   <p style={{ margin: "0 0 6px", fontSize: "11px", color: "#888" }}>
                     KEYWORDS FOR {folder.name.toUpperCase()}
                   </p>
                   <div style={{ display: "flex", gap: "6px", marginBottom: "6px" }}>
                     <input
-                      type="text"
-                      placeholder="Add keyword..."
-                      value={newKeyword}
+                      type="text" placeholder="Add keyword..." value={newKeyword}
                       onChange={(e) => { e.stopPropagation(); setNewKeyword(e.target.value); }}
-                      onKeyDown={(e) => {
-                        e.stopPropagation();
-                        if (e.key === "Enter") addKeyword(folder.id);
-                      }}
-                      style={{
-                        flex: 1, padding: "6px 8px", borderRadius: "6px",
-                        border: "1px solid #ddd", fontSize: "12px", outline: "none",
-                      }}
+                      onKeyDown={(e) => { e.stopPropagation(); if (e.key === "Enter") addKeyword(folder.id); }}
+                      style={{ flex: 1, padding: "6px 8px", borderRadius: "6px", border: "1px solid #ddd", fontSize: "12px", outline: "none" }}
                     />
-                    <button
-                      onClick={(e) => { e.stopPropagation(); addKeyword(folder.id); }}
-                      style={{
-                        padding: "6px 10px", backgroundColor: "#1a73e8", color: "white",
-                        border: "none", borderRadius: "6px", cursor: "pointer", fontSize: "12px",
-                      }}
+                    <button onClick={(e) => { e.stopPropagation(); addKeyword(folder.id); }}
+                      style={{ padding: "6px 10px", backgroundColor: "#1a73e8", color: "white", border: "none", borderRadius: "6px", cursor: "pointer", fontSize: "12px" }}
                     >Add</button>
                   </div>
                   <div style={{ display: "flex", flexWrap: "wrap", gap: "4px", marginBottom: "10px" }}>
-                    {folderKeywords.length === 0 && (
-                      <p style={{ fontSize: "12px", color: "#aaa", margin: 0 }}>No keywords yet</p>
-                    )}
+                    {folderKeywords.length === 0 && <p style={{ fontSize: "12px", color: "#aaa", margin: 0 }}>No keywords yet</p>}
                     {folderKeywords.map(keyword => (
                       <span key={keyword} style={{
                         display: "flex", alignItems: "center", gap: "4px",
@@ -529,25 +463,14 @@ function App() {
                         borderRadius: "12px", padding: "3px 10px", fontSize: "12px",
                       }}>
                         {keyword}
-                        <span
-                          onClick={(e) => { e.stopPropagation(); removeKeyword(folder.id, keyword); }}
-                          style={{ cursor: "pointer", fontWeight: 700 }}
-                        >✕</span>
+                        <span onClick={(e) => { e.stopPropagation(); removeKeyword(folder.id, keyword); }}
+                          style={{ cursor: "pointer", fontWeight: 700 }}>✕</span>
                       </span>
                     ))}
                   </div>
                   <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setKeywordFolderId(null);
-                      setNewKeyword("");
-                    }}
-                    style={{
-                      width: "100%", padding: "8px",
-                      backgroundColor: "#1a73e8", color: "white",
-                      border: "none", borderRadius: "6px",
-                      cursor: "pointer", fontSize: "13px", fontWeight: 600,
-                    }}
+                    onClick={(e) => { e.stopPropagation(); setKeywordFolderId(null); setNewKeyword(""); }}
+                    style={{ width: "100%", padding: "8px", backgroundColor: "#1a73e8", color: "white", border: "none", borderRadius: "6px", cursor: "pointer", fontSize: "13px", fontWeight: 600 }}
                   >Done</button>
                 </div>
               )}
@@ -556,24 +479,65 @@ function App() {
         })}
       </div>
 
-      {/* Email list */}
+      {/* Train AI prompt — appears after drag and drop */}
+      {trainPrompt && (
+        <div style={{
+          margin: "0 12px 8px", padding: "12px",
+          backgroundColor: "#e8f0fe", border: "1px solid #1a73e8",
+          borderRadius: "8px",
+        }}>
+          <p style={{ margin: "0 0 8px", fontSize: "13px", color: "#1a73e8", fontWeight: 600 }}>
+            Move email to {trainPrompt.folderName}
+          </p>
+          <p style={{ margin: "0 0 10px", fontSize: "12px", color: "#555" }}>
+            Would you like similar emails to go here in the future?
+          </p>
+          <div style={{ display: "flex", gap: "8px" }}>
+            <button
+              onClick={() => trainAI(trainPrompt.folderName, trainPrompt.keywords)}
+              style={{
+                flex: 1, padding: "8px", backgroundColor: "#1a73e8", color: "white",
+                border: "none", borderRadius: "6px", cursor: "pointer", fontSize: "12px", fontWeight: 600,
+              }}
+            >Yes, train AI</button>
+            <button
+              onClick={() => setTrainPrompt(null)}
+              style={{
+                flex: 1, padding: "8px", backgroundColor: "white", color: "#555",
+                border: "1px solid #ddd", borderRadius: "6px", cursor: "pointer", fontSize: "12px",
+              }}
+            >No thanks</button>
+          </div>
+        </div>
+      )}
+
+      {/* Email list — emails are draggable */}
       <div style={{ flex: 1, overflowY: "auto", padding: "0 8px" }}>
         <p style={{ fontSize: "11px", color: "#888", padding: "0 8px", marginBottom: "8px" }}>
           {folders.find(f => f.id === selected)?.name.toUpperCase()}
         </p>
-        {error && (
-          <p style={{ padding: "8px 12px", color: "red", fontSize: "13px" }}>{error}</p>
-        )}
+        {error && <p style={{ padding: "8px 12px", color: "red", fontSize: "13px" }}>{error}</p>}
         {emails
           .filter(e => e.folder === folders.find(f => f.id === selected)?.name)
           .map(email => (
-            <div key={email.id} style={{
-              padding: "10px 12px", borderRadius: "8px", marginBottom: "6px",
-              backgroundColor: "white", border: "1px solid #e0e0e0",
-            }}>
+            <div
+              key={email.id}
+              // Make email draggable
+              draggable
+              onDragStart={() => setDraggingEmailId(email.id)}
+              onDragEnd={() => { setDraggingEmailId(null); setDragOverFolderId(null); }}
+              style={{
+                padding: "10px 12px", borderRadius: "8px", marginBottom: "6px",
+                backgroundColor: "white", border: "1px solid #e0e0e0",
+                cursor: "grab",
+                opacity: draggingEmailId === email.id ? 0.5 : 1,
+                transition: "opacity 0.15s",
+              }}
+            >
               <p style={{ margin: 0, fontSize: "13px", fontWeight: 600, color: "#333" }}>{email.subject}</p>
               <p style={{ margin: "2px 0 0", fontSize: "11px", color: "#888" }}>{email.from}</p>
               <p style={{ margin: "4px 0 0", fontSize: "12px", color: "#555" }}>{email.snippet.slice(0, 60)}...</p>
+              <p style={{ margin: "4px 0 0", fontSize: "10px", color: "#aaa" }}>Drag to move to another folder</p>
             </div>
           ))}
       </div>
@@ -583,38 +547,21 @@ function App() {
         {showNewFolder ? (
           <div>
             <input
-              type="text"
-              placeholder="Folder name..."
-              value={newFolderName}
+              type="text" placeholder="Folder name..." value={newFolderName}
               onChange={(e) => setNewFolderName(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && createFolder()}
-              style={{
-                width: "100%", padding: "8px 10px", borderRadius: "6px",
-                border: "1px solid #1a73e8", fontSize: "13px",
-                outline: "none", boxSizing: "border-box", marginBottom: "8px",
-              }}
+              style={{ width: "100%", padding: "8px 10px", borderRadius: "6px", border: "1px solid #1a73e8", fontSize: "13px", outline: "none", boxSizing: "border-box", marginBottom: "8px" }}
               autoFocus
             />
             <div style={{ display: "flex", gap: "8px" }}>
-              <button onClick={createFolder} style={{
-                flex: 1, padding: "8px", backgroundColor: "#1a73e8",
-                color: "white", border: "none", borderRadius: "6px",
-                cursor: "pointer", fontSize: "13px",
-              }}>Create</button>
-              <button onClick={() => setShowNewFolder(false)} style={{
-                flex: 1, padding: "8px", backgroundColor: "#f1f3f4",
-                color: "#333", border: "none", borderRadius: "6px",
-                cursor: "pointer", fontSize: "13px",
-              }}>Cancel</button>
+              <button onClick={createFolder} style={{ flex: 1, padding: "8px", backgroundColor: "#1a73e8", color: "white", border: "none", borderRadius: "6px", cursor: "pointer", fontSize: "13px" }}>Create</button>
+              <button onClick={() => setShowNewFolder(false)} style={{ flex: 1, padding: "8px", backgroundColor: "#f1f3f4", color: "#333", border: "none", borderRadius: "6px", cursor: "pointer", fontSize: "13px" }}>Cancel</button>
             </div>
           </div>
         ) : (
-          <div
-            onClick={() => setShowNewFolder(true)}
+          <div onClick={() => setShowNewFolder(true)}
             style={{ fontSize: "13px", color: "#1a73e8", textAlign: "center", cursor: "pointer" }}
-          >
-            + Create New Folder
-          </div>
+          >+ Create New Folder</div>
         )}
       </div>
     </div>
