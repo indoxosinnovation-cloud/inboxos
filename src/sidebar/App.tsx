@@ -21,6 +21,150 @@ interface Folder {
   keywords: string[];
 }
 
+// Onboarding screen shown before the user connects Gmail
+function OnboardingScreen({ onConnect }: { onConnect: () => void }) {
+  return (
+    <div style={{
+      width: "300px", height: "100vh", backgroundColor: "#fff",
+      fontFamily: "Google Sans, sans-serif", display: "flex",
+      flexDirection: "column", borderLeft: "1px solid #e0e0e0",
+    }}>
+      {/* Header */}
+      <div style={{
+        padding: "24px 20px", backgroundColor: "#1a73e8", color: "white",
+        textAlign: "center",
+      }}>
+        <h1 style={{ margin: 0, fontSize: "24px", fontWeight: 700 }}>InboxOS</h1>
+        <p style={{ margin: "6px 0 0", fontSize: "13px", opacity: 0.85 }}>
+          AI-powered Gmail organizer
+        </p>
+      </div>
+
+      {/* Features list */}
+      <div style={{ flex: 1, padding: "24px 20px" }}>
+        <p style={{ margin: "0 0 20px", fontSize: "14px", color: "#444", lineHeight: 1.5 }}>
+          InboxOS automatically organizes your Gmail into smart folders using AI.
+        </p>
+
+        {[
+          { icon: "📁", title: "Smart Folders", desc: "AI sorts your emails automatically" },
+          { icon: "🔑", title: "Keyword Training", desc: "Teach the AI your preferences" },
+          { icon: "⚡", title: "Instant Access", desc: "Find any email in seconds" },
+        ].map(feature => (
+          <div key={feature.title} style={{
+            display: "flex", alignItems: "flex-start", gap: "12px",
+            marginBottom: "20px",
+          }}>
+            <span style={{ fontSize: "24px" }}>{feature.icon}</span>
+            <div>
+              <p style={{ margin: 0, fontSize: "14px", fontWeight: 600, color: "#333" }}>
+                {feature.title}
+              </p>
+              <p style={{ margin: "2px 0 0", fontSize: "12px", color: "#888" }}>
+                {feature.desc}
+              </p>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Connect button */}
+      <div style={{ padding: "20px" }}>
+        <button
+          onClick={onConnect}
+          style={{
+            width: "100%", padding: "14px",
+            backgroundColor: "#1a73e8", color: "white",
+            border: "none", borderRadius: "8px",
+            cursor: "pointer", fontSize: "15px", fontWeight: 600,
+            boxShadow: "0 2px 6px rgba(26,115,232,0.4)",
+          }}
+        >
+          Connect Gmail to Get Started
+        </button>
+        <p style={{ textAlign: "center", fontSize: "11px", color: "#aaa", marginTop: "10px" }}>
+          Your emails never leave your device
+        </p>
+      </div>
+    </div>
+  );
+}
+
+// Loading animation shown while AI classifies emails
+function LoadingScreen() {
+  const [dotsCount, setDotsCount] = useState(1);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setDotsCount(d => d === 3 ? 1 : d + 1);
+    }, 500);
+    return () => clearInterval(interval);
+  }, []);
+
+  const dots = ".".repeat(dotsCount);
+
+  return (
+    <div style={{
+      width: "300px", height: "100vh", backgroundColor: "#fff",
+      fontFamily: "Google Sans, sans-serif", display: "flex",
+      flexDirection: "column", borderLeft: "1px solid #e0e0e0",
+    }}>
+      {/* Header */}
+      <div style={{
+        padding: "20px 16px", backgroundColor: "#1a73e8", color: "white",
+        display: "flex", alignItems: "center", gap: "12px",
+      }}>
+        <h1 style={{ margin: 0, fontSize: "18px", fontWeight: 600 }}>InboxOS</h1>
+      </div>
+
+      {/* Loading content */}
+      <div style={{
+        flex: 1, display: "flex", flexDirection: "column",
+        alignItems: "center", justifyContent: "center", padding: "40px 20px",
+      }}>
+        {/* Spinning circle */}
+        <div style={{
+          width: "48px", height: "48px", borderRadius: "50%",
+          border: "4px solid #e8f0fe",
+          borderTop: "4px solid #1a73e8",
+          animation: "spin 1s linear infinite",
+          marginBottom: "24px",
+        }} />
+
+        <p style={{ margin: 0, fontSize: "16px", fontWeight: 600, color: "#333" }}>
+          AI is reading your emails{dots}
+        </p>
+        <p style={{ margin: "8px 0 0", fontSize: "13px", color: "#888", textAlign: "center" }}>
+          Gemini is classifying and organizing your inbox
+        </p>
+
+        {/* Animated steps */}
+        <div style={{ marginTop: "32px", width: "100%" }}>
+          {[
+            "Fetching your emails",
+            "Analyzing content",
+            "Organizing into folders",
+          ].map((step, i) => (
+            <div key={step} style={{
+              display: "flex", alignItems: "center", gap: "10px",
+              padding: "8px 12px", marginBottom: "8px",
+              backgroundColor: "#f8f9fa", borderRadius: "8px",
+            }}>
+              <div style={{
+                width: "8px", height: "8px", borderRadius: "50%",
+                backgroundColor: "#1a73e8",
+                opacity: dotsCount > i ? 1 : 0.3,
+                transition: "opacity 0.3s",
+              }} />
+              <span style={{ fontSize: "13px", color: "#555" }}>{step}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function App() {
   const [selected, setSelected] = useState(1);
   const [emails, setEmails] = useState<Email[]>([]);
@@ -73,7 +217,7 @@ function App() {
     setError("");
     try {
       const listRes = await fetch(
-        "https://gmail.googleapis.com/gmail/v1/users/me/messages?maxResults=10",
+        "https://gmail.googleapis.com/gmail/v1/users/me/messages?maxResults=25",
         { headers: { Authorization: `Bearer ${authToken}` } }
       );
       const listData = await listRes.json();
@@ -188,6 +332,12 @@ function App() {
     setRenameValue("");
   };
 
+  // Show onboarding if not logged in
+  if (!token) return <OnboardingScreen onConnect={login} />;
+
+  // Show loading screen while AI classifies
+  if (loading) return <LoadingScreen />;
+
   return (
     <div
       onClick={() => setMenuOpenId(null)}
@@ -207,25 +357,20 @@ function App() {
           <h1 style={{ margin: 0, fontSize: "18px", fontWeight: 600 }}>InboxOS</h1>
           <p style={{ margin: "4px 0 0", fontSize: "12px", opacity: 0.85 }}>AI Gmail Organizer</p>
         </div>
-        {token && (
-          <button
-            onClick={() => fetchEmails(token)}
-            disabled={loading}
-            style={{
-              backgroundColor: "rgba(255,255,255,0.2)", border: "none",
-              borderRadius: "50%", width: "36px", height: "36px",
-              cursor: loading ? "not-allowed" : "pointer", fontSize: "18px",
-              display: "flex", alignItems: "center", justifyContent: "center", color: "white",
-            }}
-            title="Refresh emails"
-          >
-            {loading ? "⏳" : "↻"}
-          </button>
-        )}
+        <button
+          onClick={() => fetchEmails(token)}
+          style={{
+            backgroundColor: "rgba(255,255,255,0.2)", border: "none",
+            borderRadius: "50%", width: "36px", height: "36px",
+            cursor: "pointer", fontSize: "18px", display: "flex",
+            alignItems: "center", justifyContent: "center", color: "white",
+          }}
+          title="Refresh emails"
+        >↻</button>
       </div>
 
       {/* Folder list */}
-      <div style={{ padding: "12px 8px", overflowY: "auto", maxHeight: "55vh", flexShrink: 0 }}>
+      <div style={{ padding: "12px 8px", overflowY: "visible", flexShrink: 0 }}>
         <p style={{ fontSize: "11px", color: "#888", padding: "0 8px", marginBottom: "8px" }}>FOLDERS</p>
         {folders.map(folder => {
           const count = emails.filter(e => e.folder === folder.name).length;
@@ -262,7 +407,6 @@ function App() {
                 </div>
               ) : (
                 <div style={{ position: "relative" }}>
-                  {/* Folder row */}
                   <div
                     onClick={(e) => { e.stopPropagation(); setSelected(folder.id); }}
                     style={{
@@ -292,7 +436,6 @@ function App() {
                     </div>
                   </div>
 
-                  {/* Dropdown menu */}
                   {menuOpenId === folder.id && (
                     <div
                       onClick={(e) => e.stopPropagation()}
@@ -332,7 +475,6 @@ function App() {
                 </div>
               )}
 
-              {/* Keyword panel */}
               {keywordFolderId === folder.id && (
                 <div
                   onClick={(e) => e.stopPropagation()}
@@ -386,8 +528,6 @@ function App() {
                       </span>
                     ))}
                   </div>
-
-                  {/* Done button — closes keyword panel */}
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
@@ -413,18 +553,6 @@ function App() {
         <p style={{ fontSize: "11px", color: "#888", padding: "0 8px", marginBottom: "8px" }}>
           {folders.find(f => f.id === selected)?.name.toUpperCase()}
         </p>
-        {!token && (
-          <button onClick={login} style={{
-            margin: "8px", padding: "10px 16px", backgroundColor: "#1a73e8",
-            color: "white", border: "none", borderRadius: "6px", cursor: "pointer",
-            fontSize: "14px", width: "calc(100% - 16px)",
-          }}>Connect Gmail</button>
-        )}
-        {loading && (
-          <p style={{ padding: "8px 12px", color: "#888", fontSize: "13px" }}>
-            AI is classifying your emails...
-          </p>
-        )}
         {error && (
           <p style={{ padding: "8px 12px", color: "red", fontSize: "13px" }}>{error}</p>
         )}
