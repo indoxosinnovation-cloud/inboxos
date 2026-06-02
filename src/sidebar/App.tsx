@@ -247,7 +247,15 @@ function App() {
                 keywords: Array.isArray(f.keywords) ? f.keywords : [],
               })),
             },
-            (response) => resolve(response?.folder || "Miscellaneous")
+            (response) => {
+              const raw = response?.folder?.trim() || "Miscellaneous";
+              // Find exact match first, then try case-insensitive match
+              const exactMatch = folders.find(f => f.name === raw);
+              const looseMatch = folders.find(f => 
+                f.name.toLowerCase() === raw.toLowerCase()
+            );
+              resolve(exactMatch?.name || looseMatch?.name || "Miscellaneous");
+          }
           );
         });
         return { id: msg.id, subject, from, snippet, folder: classification };
