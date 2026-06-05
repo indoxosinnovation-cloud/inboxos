@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-
+import { logInstall, logFolderCreated, logEmailMoved, logKeywordAdded } from "../analytics";
 const DEFAULT_FOLDERS = [
   { id: 1, name: "Inbox", keywords: [] as string[] },
   { id: 2, name: "Bills", keywords: ["invoice", "payment", "receipt", "due", "electric", "bill"] },
@@ -166,13 +166,15 @@ function App() {
   }, []);
 
   const login = () => {
-    chrome.runtime.sendMessage({ type: "GET_AUTH_TOKEN" }, (response) => {
-      if (response.error) { setError("Login failed: " + response.error); return; }
-      chrome.storage.local.set({ authToken: response.token });
-      setToken(response.token);
-      fetchEmails(response.token);
-    });
-  };
+  chrome.runtime.sendMessage({ type: "GET_AUTH_TOKEN" }, (response) => {
+    if (response.error) { setError("Login failed: " + response.error); return; }
+    chrome.storage.local.set({ authToken: response.token });
+    setToken(response.token);
+    // Track new installs
+    logInstall();
+    fetchEmails(response.token);
+  });
+};
 
   const fetchEmails = async (authToken: string) => {
     setLoading(true);
@@ -220,6 +222,7 @@ function App() {
       f.id === folderId ? { ...f, keywords: [...(Array.isArray(f.keywords) ? f.keywords : []), newKeyword.trim().toLowerCase()] } : f
     );
     saveFolders(updatedFolders);
+    logKeywordAdded(folderId.toString());
     setNewKeyword("");
   };
 
@@ -231,13 +234,15 @@ function App() {
   };
 
   const createFolder = () => {
-    if (!newFolderName.trim()) return;
-    const newFolder = { id: Date.now(), name: newFolderName.trim(), keywords: [] as string[] };
-    saveFolders([...folders, newFolder]);
-    setNewFolderName("");
-    setShowNewFolder(false);
-    setSelected(newFolder.id);
-  };
+  if (!newFolderName.trim()) return;
+  const newFolder = { id: Date.now(), name: newFolderName.trim(), keywords: [] as string[] };
+  saveFolders([...folders, newFolder]);
+  // Track folder creation
+  logFolderCreated(newFolder.name);
+  setNewFolderName("");
+  setShowNewFolder(false);
+  setSelected(newFolder.id);
+};
 
   const deleteFolder = (folderId: number) => {
     if (folderId === 4) return;
@@ -295,6 +300,7 @@ function App() {
     const keywords = extractKeywords(email.subject);
 
     // Show the "train AI?" prompt
+    logEmailMoved(targetFolder.name, false);
     setTrainPrompt({ emailId: draggingEmailId, folderName: targetFolder.name, keywords });
     setDraggingEmailId(null);
     setDragOverFolderId(null);

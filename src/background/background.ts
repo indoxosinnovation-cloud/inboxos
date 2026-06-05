@@ -4,6 +4,8 @@ chrome.runtime.onInstalled.addListener(() => {
 });
 
 import { GEMINI_API_KEY } from "../config";
+import { logClassification } from "../analytics"; 
+
 
 chrome.runtime.onInstalled.addListener(() => {
   console.log("InboxOS installed!");
@@ -89,6 +91,8 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     // Try keyword matching first
     const keywordResult = keywordMatch(subject, snippet, folders);
     if (keywordResult) {
+      // Log keyword classification to Firebase
+      logClassification(keywordResult, "keyword");
       sendResponse({ folder: keywordResult });
       return true;
     }
@@ -102,7 +106,10 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
           const b = folder.toLowerCase().trim();
           return a === b || a.includes(b) || b.includes(a);
         });
-        sendResponse({ folder: normalized?.name || "Miscellaneous" });
+        const finalFolder = normalized?.name || "Miscellaneous";
+        // Log Gemini classification to Firebase
+        logClassification(finalFolder, "gemini");
+        sendResponse({ folder: finalFolder });
       })
       .catch(() => sendResponse({ folder: "Miscellaneous" }));
     return true;
